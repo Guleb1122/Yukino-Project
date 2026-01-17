@@ -1,0 +1,6 @@
+flask
+numpy
+psutil
+cryptography
+scapy
+requests
